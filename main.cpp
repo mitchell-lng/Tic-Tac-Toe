@@ -341,16 +341,16 @@ class Bot {
                 if (middle != -1) {
                     return middle;
                 } else {
-                    if (!singleMiddleOutside)
+                    if (!singleCorner)
                     {
-                        int middleout = board.middleOutside();
-                        singleMiddleOutside = true;
-                        if (middleout != -1) return middleout;
+                        int corner = board.corner();
+                        singleCorner = true;
+                        if (corner != -1) return corner;
                     }
-                    
-                    int corner = board.corner();
-                    if (corner != -1) {
-                        return corner;
+
+                    int middleout = board.middleOutside();
+                    if (middleout != -1) {
+                        return middleout;
                     } else {
                         return getRandomPick();
                     }
@@ -363,7 +363,7 @@ class Bot {
         int _size;
         BotType _type;
 
-        bool singleMiddleOutside = false;
+        bool singleCorner = false;
 
 };
 
