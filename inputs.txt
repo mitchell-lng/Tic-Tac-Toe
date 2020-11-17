@@ -1,2 +1,2 @@
 Size 3,3
-Bot-Type Random
+Bot-Type Strategic

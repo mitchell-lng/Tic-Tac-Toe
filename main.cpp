@@ -1,10 +1,12 @@
 #include <iostream>
 #include <vector>
 #include <map>
+#include <cmath>
 #include <memory>
 #include <ctime>
 #include <cstdlib>
 #include <fstream>
+#include <algorithm>
 #include <sstream>
 
 using std::string;
@@ -14,31 +16,6 @@ using std::map;
 using std::vector;
 
 enum BotType {Random, Strategic};
-
-class Bot {
-    public:
-        Bot(int size, BotType type)
-        {
-            cout << "Bot Created!\n";
-            _size = size - 1;
-            _type = type;
-        }
-
-        int pick() {
-            // TODO create Strategic Bot Mode
-            if (_type == Strategic) { return getRandomPick(); }
-            return getRandomPick();
-        }
-
-        int getRandomPick()
-        {
-            return (rand() % _size) + 1;
-        }
-    private:
-        int _size;
-        BotType _type;
-
-};
 
 class Board {
     public:
@@ -78,6 +55,65 @@ class Board {
         bool getSquare(int boardID) {
             // False = taken; true = available
             return board->at(boardID) == ' ';
+        }
+
+        bool isWhole(int number) {
+            if (floor(number) == number) return true;
+            return false;
+        }
+
+        int canWin() {
+            // TODO: Can a player win? If so place char in that spot
+            return -1;
+        }
+
+        int middleOutside() {
+            vector<int> numbers;
+            for (int i = 0; i < grid[0]; i++) {
+                for (int j = 0; i < grid[1]; i++) {
+                    int number = (i * grid[0]) + j + 1;
+
+                    if (i == 0 || i == (grid[0] - 1)) {
+                        if (j != 0 && j != grid[1] - 1) {
+                            numbers.push_back(number);
+                        }
+                    } else {
+                        if (j == 0 || j == grid[1] - 1) {
+                            numbers.push_back(number);
+                        }
+                    }
+                }
+            }
+
+            std::random_shuffle( numbers.begin(), numbers.end() );
+
+            for (int i: numbers) {
+                if (getSquare(i)) return i;
+            }
+
+            return -1;
+        }
+
+        int middle() {
+            int size = grid[0] * grid[1];
+            
+            float directMiddle = (size - 1) / 2 + 1;
+            if (isWhole(directMiddle) && getSquare(directMiddle)) {
+                return directMiddle;
+            }
+
+            return -1;
+        }
+
+        int corner() {
+            vector<int> corners = {1, grid[0], (grid[1] * (grid[0] - 1)) + 1, grid[1] * grid[0]};
+
+            for (int i: corners) {
+                if (getSquare(i))
+                    return i;
+            }
+
+            return -1;
         }
 
         bool win()
@@ -190,6 +226,61 @@ class Board {
         int size;
 };
 
+class Bot {
+    public:
+        Bot(int size, BotType type)
+        {
+            cout << "Bot Created!\n";
+            _size = size - 1;
+            _type = type;
+        }
+
+        int pick(Board &b) {
+            if (_type == Strategic) { return strategicPick(b); }
+            return getRandomPick();
+        }
+
+        int getRandomPick()
+        {
+            return (rand() % _size) + 1;
+        }
+
+        int strategicPick(Board &board)
+        {
+            int cw = board.canWin();
+            if (cw != -1) {
+                return cw;
+            } else {
+                int middle = board.middle();
+                if (middle != -1) {
+                    return middle;
+                } else {
+                    if (!singleMiddleOutside)
+                    {
+                        int middleout = board.middleOutside();
+                        singleMiddleOutside = true;
+                        if (middleout != -1) return middleout;
+                    }
+                    
+                    int corner = board.corner();
+                    if (corner != -1) {
+                        return corner;
+                    } else {
+                        return getRandomPick();
+                    }
+                }
+            }
+
+            return 0;
+        }
+    private:
+        int _size;
+        BotType _type;
+
+        bool singleMiddleOutside = false;
+
+};
+
 int getInput(int size) {
     int input = 0;
     while (!(input > 0 && input < size))
@@ -226,7 +317,7 @@ void init() {
         }
 
         if (key == "Bot-Type") {
-            auto it = table.find(key);
+            auto it = table.find(value);
             if (it != table.end())
                 botType = it->second;
         }
@@ -235,8 +326,6 @@ void init() {
     srand(time(NULL));
 
     Board board(widthHeight.at(0), widthHeight.at(1));
-    board.printBoard();
-
     Bot bot(board.getBoardSize(), botType);
 
     int turn = 0;
@@ -247,17 +336,17 @@ void init() {
     while(!board.win() && !board.boardFull()) {
 
         if (turn % 2 == 0) {
+            board.printBoard();
             val = getInput(board.getBoardSize());
             currentChar = 'X';
         }
         else {
-            val = bot.pick();
+            val = bot.pick(board);
             currentChar = 'O';
         }
 
         if (board.getSquare(val)) {
             board.setSquare(val, currentChar);
-            board.printBoard();
             turn++;
         } else {
             if (turn % 2 == 0) {
@@ -265,6 +354,8 @@ void init() {
             }
         }
     }
+
+    board.printBoard();
 }
 
 int main() {
