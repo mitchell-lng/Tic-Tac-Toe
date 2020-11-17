@@ -63,7 +63,93 @@ class Board {
         }
 
         int canWin() {
-            // TODO: Can a player win? If so place char in that spot
+            // Check Rows
+            for (int i = 0; i < grid[0]; i++) {
+                char character = 'L';
+
+                for (int j = 0; j < grid[1]; j++) {
+                    int number = j + (i * grid[0]) + 1;
+                    if (!getSquare(number)) character = board->at(number);
+                }
+
+                if (character != 'L') {
+                    int score = 0;
+                    int index;
+                    for (int j = 0; j < grid[1]; j++) {
+                        int number = j + (i * grid[0]) + 1;
+                        if (board->at(number) == character) {
+                            score++;
+                        } else {
+                            index = number;
+                        }
+                    }
+
+                    if (score == grid[1] - 1  && getSquare(index)) return index;
+                }
+            }
+
+            // Checks Columns
+            for (int i = 0; i < grid[1]; i++) {
+                char character = 'L';
+
+                for (int j = 0; j < grid[0]; j++) {
+                    int number = i + (j * grid[0]) + 1;
+                    if (!getSquare(number)) character = board->at(number);
+                }
+
+                if (character != 'L') {
+                    int score = 0;
+                    int index;
+                    for (int j = 0; j < grid[0]; j++) {
+                        int number = i + (j * grid[0]) + 1;
+                        if (board->at(number) == character) {
+                            score++;
+                        } else {
+                            index = number;
+                        }
+                    }
+
+                    if (score == grid[1] - 1  && getSquare(index)) return index;
+                }
+            }
+
+            // Check Diagonals
+            if (grid[0] == grid[1]) {
+                for (int i = 0; i < 2; i++) {
+                    char character = 'L';
+                    int incrementVal;
+                    int startVal;
+
+                    if (i == 0) {
+                        startVal = 1;
+                        incrementVal = grid[0] + 1;
+                    } else {
+                        startVal = grid[0];
+                        incrementVal = grid[0] - 1;
+                    }
+
+                    for (int j = 0; j < grid[0]; j++) {
+                        int number = startVal + (j * incrementVal);
+                        if (!getSquare(number)) character = board->at(number);
+                    }
+
+                    if (character != 'L') {
+                        int score = 0;
+                        int index;
+                        for (int j = 0; j < grid[0]; j++) {
+                            int number = startVal + (j * incrementVal);
+                            if (board->at(number) == character) {
+                                score++;
+                            } else {
+                                index = number;
+                            }
+                        }
+
+                        if (score == grid[1] - 1  && getSquare(index)) return index;
+                    }
+                }
+            }
+
             return -1;
         }
 
